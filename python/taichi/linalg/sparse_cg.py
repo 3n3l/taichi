@@ -22,15 +22,16 @@ class SparseCG:
     def __init__(self, A, b, x0=None, max_iter=50, atol=1e-6):
         self.dtype = A.dtype
         self.ti_arch = get_runtime().prog.config().arch
+        self.verbose = get_runtime().prog.config().verbose
         self.matrix = A
         self.b = b
         if self.ti_arch == _ti_core.Arch.cuda:
-            self.cg_solver = _ti_core.make_cucg_solver(A.matrix, max_iter, atol, True)
+            self.cg_solver = _ti_core.make_cucg_solver(A.matrix, max_iter, atol, self.verbose)
         elif self.ti_arch == _ti_core.Arch.x64 or self.ti_arch == _ti_core.Arch.arm64:
             if self.dtype == f32:
-                self.cg_solver = _ti_core.make_float_cg_solver(A.matrix, max_iter, atol, True)
+                self.cg_solver = _ti_core.make_float_cg_solver(A.matrix, max_iter, atol, self.verbose)
             elif self.dtype == f64:
-                self.cg_solver = _ti_core.make_double_cg_solver(A.matrix, max_iter, atol, True)
+                self.cg_solver = _ti_core.make_double_cg_solver(A.matrix, max_iter, atol, self.verbose)
             else:
                 raise TaichiRuntimeError(f"Unsupported CG dtype: {self.dtype}")
             if isinstance(b, Ndarray):
